@@ -54,9 +54,11 @@ export async function getAllReservations(filters?: { date?: string; status?: str
   let query = getSupabase().from('reservations').select('*');
   if (filters?.date)   query = query.eq('date', filters.date);
   if (filters?.status) query = query.eq('status', filters.status);
-  query = (query as ReturnType<typeof query.order>)
-    .order('date', { ascending: true })
-    .order('time', { ascending: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = getSupabase().from('reservations').select('*');
+  if (filters?.date)   query = query.eq('date', filters.date);
+  if (filters?.status) query = query.eq('status', filters.status);
+  query = query.order('date', { ascending: true }).order('time', { ascending: true });
   const { data } = await query;
   return (data || []) as Reservation[];
 }
