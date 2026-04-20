@@ -36,6 +36,12 @@ export interface Config {
   active_days: number[];  // 0=Dom, 1=Lun, ..., 6=Sab
 }
 
+export interface DailyOverride {
+  date: string;      // YYYY-MM-DD
+  max_seats: number;
+  note: string;
+}
+
 export interface SpecialClosure {
   id: number;
   date: string;

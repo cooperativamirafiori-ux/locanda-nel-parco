@@ -11,14 +11,32 @@ function formatDateIT(dateStr: string) {
   });
 }
 
+function nextDay(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + 1);
+  return dt.toISOString().split('T')[0];
+}
+
+function datesBetween(from: string, to: string): string[] {
+  const dates: string[] = [];
+  let cur = from;
+  while (cur <= to) {
+    dates.push(cur);
+    cur = nextDay(cur);
+  }
+  return dates;
+}
+
 export default function ChiusurePage() {
   const router = useRouter();
   const [closures, setClosures] = useState<SpecialClosure[]>([]);
   const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState('');
-  const [reason, setReason] = useState('');
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo]   = useState('');
+  const [reason, setReason]   = useState('');
+  const [adding, setAdding]   = useState(false);
+  const [progress, setProgress] = useState('');
+  const [error, setError]     = useState('');
 
   const loadClosures = async () => {
     const r = await fetch('/api/admin/closures');
@@ -31,24 +49,35 @@ export default function ChiusurePage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date) return;
+    if (!dateFrom) return;
     setAdding(true);
     setError('');
+    setProgress('');
+
+    const dates = dateTo && dateTo >= dateFrom
+      ? datesBetween(dateFrom, dateTo)
+      : [dateFrom];
+
     try {
-      const r = await fetch('/api/admin/closures', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, reason }),
-      });
-      if (r.ok) {
-        setDate('');
-        setReason('');
-        loadClosures();
-        router.refresh();
-      } else {
-        const d = await r.json();
-        setError(d.error || 'Errore.');
+      for (let i = 0; i < dates.length; i++) {
+        if (dates.length > 1) setProgress(`Aggiunta ${i + 1}/${dates.length}...`);
+        const r = await fetch('/api/admin/closures', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: dates[i], reason }),
+        });
+        if (!r.ok) {
+          const d = await r.json();
+          setError(d.error || `Errore sulla data ${dates[i]}.`);
+          break;
+        }
       }
+      setDateFrom('');
+      setDateTo('');
+      setReason('');
+      setProgress('');
+      loadClosures();
+      router.refresh();
     } catch {
       setError('Errore di rete.');
     } finally {
@@ -60,6 +89,8 @@ export default function ChiusurePage() {
     await fetch(`/api/admin/closures/${id}`, { method: 'DELETE' });
     loadClosures();
   };
+
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="max-w-2xl">
@@ -74,33 +105,47 @@ export default function ChiusurePage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
-                Data *
+                Dal giorno *
               </label>
               <input
                 type="date"
                 required
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                value={dateFrom}
+                onChange={e => setDateFrom(e.target.value)}
+                min={today}
                 className="field"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
-                Motivo (opzionale)
+                Al giorno (opzionale)
               </label>
               <input
-                type="text"
-                value={reason}
-                onChange={e => setReason(e.target.value)}
-                placeholder="Ferie, evento privato..."
+                type="date"
+                value={dateTo}
+                onChange={e => setDateTo(e.target.value)}
+                min={dateFrom || today}
                 className="field"
               />
+              <p className="text-xs text-gray-400 mt-1">Lascia vuoto per un solo giorno</p>
             </div>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button type="submit" disabled={adding || !date} className="btn-primary disabled:opacity-50">
-            {adding ? 'Aggiunta...' : '+ Aggiungi chiusura'}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+              Motivo (opzionale)
+            </label>
+            <input
+              type="text"
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="Ferie, evento privato..."
+              className="field"
+            />
+          </div>
+          {error    && <p className="text-sm text-red-600">{error}</p>}
+          {progress && <p className="text-sm text-blue-600">{progress}</p>}
+          <button type="submit" disabled={adding || !dateFrom} className="btn-primary disabled:opacity-50">
+            {adding ? (progress || 'Aggiunta...') : '+ Aggiungi chiusura'}
           </button>
         </form>
       </div>

@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Config, Reservation, WaitlistEntry, SpecialClosure, WaitlistStatus } from '@/types';
+import type { Config, Reservation, WaitlistEntry, SpecialClosure, WaitlistStatus, DailyOverride } from '@/types';
 
 function getSupabase(): SupabaseClient {
   return createClient(
@@ -143,4 +143,36 @@ export async function addSpecialClosure(date: string, reason: string): Promise<S
 
 export async function deleteSpecialClosure(id: number): Promise<void> {
   await getSupabase().from('special_closures').delete().eq('id', id);
+}
+
+// ─── Daily Overrides ──────────────────────────────────────────────────────────
+
+export async function getDailyOverrides(): Promise<DailyOverride[]> {
+  const { data } = await getSupabase()
+    .from('daily_overrides')
+    .select('*')
+    .order('date', { ascending: true });
+  return (data || []) as DailyOverride[];
+}
+
+export async function getDailyOverride(date: string): Promise<DailyOverride | null> {
+  const { data } = await getSupabase()
+    .from('daily_overrides')
+    .select('*')
+    .eq('date', date)
+    .maybeSingle();
+  return data as DailyOverride | null;
+}
+
+export async function setDailyOverride(date: string, max_seats: number, note: string): Promise<DailyOverride> {
+  const { data, error } = await getSupabase()
+    .from('daily_overrides')
+    .upsert({ date, max_seats, note })
+    .select().single();
+  if (error) throw new Error(error.message);
+  return data as DailyOverride;
+}
+
+export async function deleteDailyOverride(date: string): Promise<void> {
+  await getSupabase().from('daily_overrides').delete().eq('date', date);
 }

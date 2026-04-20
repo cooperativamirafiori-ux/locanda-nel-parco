@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConfig, getBookedSeatsForSlot, isDateClosed } from '@/lib/db';
+import { getConfig, getBookedSeatsForSlot, isDateClosed, getDailyOverride } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Data non valida' }, { status: 400 });
   }
 
-  const config = await getConfig();
+  const [config, override] = await Promise.all([getConfig(), getDailyOverride(date)]);
+  const maxSeats = override ? override.max_seats : config.max_seats;
 
   if (await isDateClosed(date)) {
     return NextResponse.json({ isClosed: true, reason: 'chiusura speciale', slots: [] });
@@ -21,14 +22,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ isClosed: true, reason: 'giorno chiuso', slots: [] });
   }
 
+  // Se override a 0 posti → giornata chiusa per evento
+  if (maxSeats === 0) {
+    return NextResponse.json({ isClosed: true, reason: override?.note || 'giornata non disponibile', slots: [] });
+  }
+
   const slots = await Promise.all(
     config.time_slots.map(async (time) => {
       const booked = await getBookedSeatsForSlot(date, time);
       return {
         time,
         booked,
-        available: Math.max(0, config.max_seats - booked),
-        total: config.max_seats,
+        available: Math.max(0, maxSeats - booked),
+        total: maxSeats,
       };
     }),
   );
