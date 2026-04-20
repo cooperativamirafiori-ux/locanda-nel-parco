@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest: #1E3A2F;
+  --sage: #4A7C59;
+  --cream: #F7F2E8;
+  --ivory: #FAFAF5;
+  --terracotta: #C0603A;
+  --gold: #B5930A;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--cream);
+  color: #2C1810;
+  font-family: Georgia, Cambria, serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--sage); border-radius: 3px; }
+
+/* Form inputs */
+.field {
+  @apply w-full px-4 py-3 rounded-md border border-amber-200 bg-white
+         text-sm font-sans text-gray-800
+         focus:outline-none focus:ring-2 focus:ring-green-800 focus:border-transparent
+         transition-all duration-200;
+}
+
+.field::placeholder {
+  color: #B0A898;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply bg-forest text-cream px-8 py-3 rounded-md font-sans font-medium text-sm
+         hover:bg-sage transition-all duration-200 tracking-wide
+         disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--forest);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--sage);
+}
+
+.btn-secondary {
+  @apply border border-forest text-forest px-6 py-2.5 rounded-md font-sans text-sm
+         hover:bg-forest hover:text-cream transition-all duration-200;
+}
+
+.btn-danger {
+  @apply bg-terracotta text-white px-6 py-2.5 rounded-md font-sans text-sm
+         hover:opacity-90 transition-all duration-200;
+  background-color: var(--terracotta);
+}
+
+/* Card */
+.card {
+  @apply bg-ivory rounded-xl shadow-sm border border-amber-100 p-6 md:p-8;
+}
+
+/* Badge */
+.badge {
+  @apply inline-block px-2.5 py-0.5 rounded-full text-xs font-sans font-medium;
+}
+
+.badge-confirmed { @apply bg-green-100 text-green-800; }
+.badge-cancelled { @apply bg-red-100 text-red-700; }
+.badge-no_show   { @apply bg-gray-100 text-gray-600; }
