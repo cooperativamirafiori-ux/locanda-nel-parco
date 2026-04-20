@@ -20,6 +20,9 @@ export default function ConfigPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [newSlot, setNewSlot] = useState('');
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [testingSend, setTestingSend] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
     fetch('/api/admin/config')
@@ -189,6 +192,50 @@ export default function ConfigPage() {
               + Aggiungi
             </button>
           </div>
+        </div>
+
+        {/* Test email */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="font-semibold text-gray-800 mb-1">Test invio email</h2>
+          <p className="text-xs text-gray-500 mb-4">Verifica che le credenziali SMTP siano corrette.</p>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={testEmailTo}
+              onChange={e => setTestEmailTo(e.target.value)}
+              placeholder="destinatario@esempio.com"
+              className="field flex-1"
+            />
+            <button
+              onClick={async () => {
+                if (!testEmailTo) return;
+                setTestingSend(true);
+                setTestResult(null);
+                try {
+                  const r = await fetch('/api/admin/test-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to: testEmailTo }),
+                  });
+                  const d = await r.json();
+                  setTestResult({ ok: r.ok, msg: r.ok ? d.message : d.error });
+                } catch (e) {
+                  setTestResult({ ok: false, msg: String(e) });
+                } finally {
+                  setTestingSend(false);
+                }
+              }}
+              disabled={testingSend || !testEmailTo}
+              className="btn-secondary disabled:opacity-50 whitespace-nowrap"
+            >
+              {testingSend ? 'Invio...' : 'Invia test'}
+            </button>
+          </div>
+          {testResult && (
+            <p className={`text-sm mt-3 px-3 py-2 rounded-lg ${testResult.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              {testResult.ok ? '✓ ' : '✗ '}{testResult.msg}
+            </p>
+          )}
         </div>
 
         {/* Salva */}

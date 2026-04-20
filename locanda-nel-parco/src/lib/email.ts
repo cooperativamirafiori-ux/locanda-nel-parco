@@ -4,13 +4,19 @@ import type { Reservation } from '@/types';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 function createTransport() {
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const isOffice365 = host.includes('office365') || host.includes('outlook');
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    host,
     port: Number(process.env.SMTP_PORT) || 587,
     secure: false,
+    requireTLS: isOffice365,   // obbligatorio per Office 365
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: true,
     },
   });
 }
