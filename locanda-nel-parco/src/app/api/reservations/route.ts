@@ -50,7 +50,11 @@ export async function POST(request: NextRequest) {
     special_requests: (special_requests || '').trim(),
   });
 
-  sendConfirmationEmail(reservation).catch(console.error);
+  try {
+    await sendConfirmationEmail(reservation);
+  } catch (e) {
+    console.error('Email conferma fallita:', e);
+  }
 
   return NextResponse.json({ reservation }, { status: 201 });
 }
