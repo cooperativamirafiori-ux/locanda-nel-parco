@@ -36,7 +36,7 @@ export default function ConfigPage() {
     setSaved(false);
     try {
       const r = await fetch('/api/admin/config', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });

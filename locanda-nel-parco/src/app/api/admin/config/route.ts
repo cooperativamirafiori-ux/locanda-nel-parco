@@ -6,7 +6,7 @@ export async function GET() {
   return NextResponse.json({ config });
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { max_seats, cancellation_hours, time_slots, active_days } = body;
