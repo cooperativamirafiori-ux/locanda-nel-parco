@@ -148,7 +148,8 @@ export default function HomePage() {
   const router = useRouter();
 
   // Step del form: 'date' | 'details' | 'submitting'
-  const [step, setStep] = useState<'date' | 'details' | 'submitting'>('date');
+  const [step, setStep] = useState<'date' | 'details'>('date');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Dati calendario e disponibilità
   const [activeDays, setActiveDays] = useState<number[]>([1, 2, 3, 4, 5, 6]);
@@ -216,7 +217,7 @@ export default function HomePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setStep('submitting');
+    setIsSubmitting(true);
 
     try {
       const r = await fetch('/api/reservations', {
@@ -236,6 +237,7 @@ export default function HomePage() {
         } else {
           setError(data.error || 'Errore durante la prenotazione.');
         }
+        setIsSubmitting(false);
         setStep('details');
         return;
       }
@@ -243,6 +245,7 @@ export default function HomePage() {
       router.push(`/conferma/${data.reservation.id}`);
     } catch {
       setError('Errore di rete. Riprova.');
+      setIsSubmitting(false);
       setStep('details');
     }
   };
@@ -442,9 +445,9 @@ export default function HomePage() {
                 <button
                   type="submit"
                   className="btn-primary w-full py-4 text-base"
-                  disabled={step === 'submitting'}
+                  disabled={isSubmitting}
                 >
-                  {step === 'submitting' ? 'Prenotazione in corso...' : 'Conferma prenotazione →'}
+                  {isSubmitting ? 'Prenotazione in corso...' : 'Conferma prenotazione →'}
                 </button>
 
                 <p className="text-xs text-gray-400 font-sans text-center">
