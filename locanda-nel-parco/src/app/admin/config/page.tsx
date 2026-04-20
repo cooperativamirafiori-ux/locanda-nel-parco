@@ -40,16 +40,23 @@ export default function ConfigPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
-      const data = await r.json();
+      const text = await r.text();
+      let data: { config?: Config; error?: string };
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setError(`Risposta non valida (HTTP ${r.status}): ${text.slice(0, 200)}`);
+        return;
+      }
       if (r.ok) {
-        setConfig(data.config);
+        setConfig(data.config!);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       } else {
         setError(data.error || 'Errore nel salvataggio.');
       }
-    } catch {
-      setError('Errore di rete.');
+    } catch (err) {
+      setError('Errore fetch: ' + String(err));
     } finally {
       setSaving(false);
     }
