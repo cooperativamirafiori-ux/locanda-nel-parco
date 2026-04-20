@@ -47,10 +47,11 @@ const emailWrapper = (content: string) => `
     .body { padding: 36px 40px; }
     .body p { color: #2C1810; line-height: 1.7; margin: 0 0 16px; }
     .detail-box { background: #F7F2E8; border-left: 3px solid #B5930A; border-radius: 4px; padding: 20px 24px; margin: 24px 0; }
-    .detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-label { color: #6B6B6B; font-size: 13px; }
-    .detail-value { color: #1E3A2F; font-weight: bold; font-size: 14px; }
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table td { padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); vertical-align: top; }
+    .detail-table tr:last-child td { border-bottom: none; }
+    .detail-label { color: #6B6B6B; font-size: 13px; white-space: nowrap; padding-right: 24px; }
+    .detail-value { color: #1E3A2F; font-weight: bold; font-size: 14px; text-align: right; }
     .btn { display: inline-block; padding: 12px 28px; border-radius: 4px; text-decoration: none; font-size: 14px; margin: 8px 4px; }
     .btn-primary { background: #1E3A2F; color: #F7F2E8; }
     .btn-danger { background: #C0603A; color: #FAFAF5; }
@@ -76,27 +77,29 @@ const emailWrapper = (content: string) => `
 function reservationDetails(r: Reservation) {
   return `
   <div class="detail-box">
-    <div class="detail-row">
-      <span class="detail-label">Prenotazione</span>
-      <span class="detail-value">#${r.id.slice(0, 8).toUpperCase()}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Data</span>
-      <span class="detail-value">${formatDate(r.date)}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Orario</span>
-      <span class="detail-value">${r.time}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Coperti</span>
-      <span class="detail-value">${r.guests} ${r.guests === 1 ? 'persona' : 'persone'}</span>
-    </div>
-    ${r.special_requests ? `
-    <div class="detail-row">
-      <span class="detail-label">Note</span>
-      <span class="detail-value">${r.special_requests}</span>
-    </div>` : ''}
+    <table class="detail-table">
+      <tr>
+        <td class="detail-label">Prenotazione</td>
+        <td class="detail-value">#${r.id.slice(0, 8).toUpperCase()}</td>
+      </tr>
+      <tr>
+        <td class="detail-label">Data</td>
+        <td class="detail-value">${formatDate(r.date)}</td>
+      </tr>
+      <tr>
+        <td class="detail-label">Orario</td>
+        <td class="detail-value">${r.time}</td>
+      </tr>
+      <tr>
+        <td class="detail-label">Coperti</td>
+        <td class="detail-value">${r.guests} ${r.guests === 1 ? 'persona' : 'persone'}</td>
+      </tr>
+      ${r.special_requests ? `
+      <tr>
+        <td class="detail-label">Note</td>
+        <td class="detail-value">${r.special_requests}</td>
+      </tr>` : ''}
+    </table>
   </div>`;
 }
 
