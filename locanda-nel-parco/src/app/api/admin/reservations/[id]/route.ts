@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getReservation, updateReservationStatus } from '@/lib/db';
+import { sendCancellationEmail } from '@/lib/email';
 import type { ReservationStatus } from '@/types';
 
 export async function PATCH(
@@ -19,5 +20,14 @@ export async function PATCH(
   }
 
   await updateReservationStatus(params.id, status);
+
+  if (status === 'cancelled') {
+    try {
+      await sendCancellationEmail({ ...reservation, status: 'cancelled' });
+    } catch (e) {
+      console.error('Email cancellazione fallita:', e);
+    }
+  }
+
   return NextResponse.json({ success: true });
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import type { Reservation, Config } from '@/types';
 
 const MESI = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
@@ -22,7 +21,7 @@ function StatusBadge({ status }: { status: Reservation['status'] }) {
 }
 
 export function AdminDashboard({
-  reservations,
+  reservations: initialReservations,
   config,
   today,
 }: {
@@ -30,9 +29,10 @@ export function AdminDashboard({
   config: Config;
   today: string;
 }) {
-  const router = useRouter();
+  const [reservations, setReservations] = useState(initialReservations);
   const [filterDate, setFilterDate] = useState(today);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
 
   const filtered = reservations.filter(r =>
     filterDate ? r.date === filterDate : true,
@@ -46,13 +46,21 @@ export function AdminDashboard({
 
   async function updateStatus(id: string, status: Reservation['status']) {
     setUpdatingId(id);
+    setActionError('');
     try {
-      await fetch(`/api/admin/reservations/${id}`, {
+      const r = await fetch(`/api/admin/reservations/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      router.refresh();
+      if (r.ok) {
+        setReservations(prev => prev.map(res => res.id === id ? { ...res, status } : res));
+      } else {
+        const data = await r.json();
+        setActionError(data.error || 'Errore nel cambio di stato');
+      }
+    } catch {
+      setActionError('Errore di rete');
     } finally {
       setUpdatingId(null);
     }
@@ -103,7 +111,10 @@ export function AdminDashboard({
           </div>
         </div>
 
-        {filtered.length === 0 ? (
+          {actionError && (
+          <p className="text-sm text-red-600 bg-red-50 px-4 py-2 border-b border-red-100">{actionError}</p>
+        )}
+      {filtered.length === 0 ? (
           <p className="text-center text-sm text-gray-400 py-10">
             Nessuna prenotazione {filterDate ? 'per questa data' : ''}.
           </p>
