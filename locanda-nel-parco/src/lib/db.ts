@@ -23,14 +23,23 @@ export async function updateConfig(update: Partial<Omit<Config, 'id'>>): Promise
 
 // ─── Availability ─────────────────────────────────────────────────────────────
 
-export async function getBookedSeatsForSlot(date: string, time: string): Promise<number> {
+// Pranzo: orari con ora < 15 (12:00–14:30). Cena: tutto il resto (19:00–23:00).
+export function getService(time: string): 'pranzo' | 'cena' {
+  return parseInt(time.split(':')[0], 10) < 15 ? 'pranzo' : 'cena';
+}
+
+export async function getBookedSeatsForService(
+  date: string,
+  service: 'pranzo' | 'cena',
+): Promise<number> {
   const { data } = await getSupabase()
     .from('reservations')
-    .select('guests')
+    .select('time, guests')
     .eq('date', date)
-    .eq('time', time)
     .eq('status', 'confirmed');
-  return (data || []).reduce((sum, r) => sum + r.guests, 0);
+  return (data || [])
+    .filter(r => getService(r.time) === service)
+    .reduce((sum, r) => sum + r.guests, 0);
 }
 
 export async function isDateClosed(date: string): Promise<boolean> {
@@ -164,10 +173,15 @@ export async function getDailyOverride(date: string): Promise<DailyOverride | nu
   return data as DailyOverride | null;
 }
 
-export async function setDailyOverride(date: string, max_seats: number, note: string): Promise<DailyOverride> {
+export async function setDailyOverride(
+  date: string,
+  max_seats_pranzo: number | null,
+  max_seats_cena: number | null,
+  note: string,
+): Promise<DailyOverride> {
   const { data, error } = await getSupabase()
     .from('daily_overrides')
-    .upsert({ date, max_seats, note })
+    .upsert({ date, max_seats_pranzo, max_seats_cena, note })
     .select().single();
   if (error) throw new Error(error.message);
   return data as DailyOverride;

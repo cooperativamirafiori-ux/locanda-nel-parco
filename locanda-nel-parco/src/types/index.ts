@@ -37,8 +37,9 @@ export interface Config {
 }
 
 export interface DailyOverride {
-  date: string;      // YYYY-MM-DD
-  max_seats: number;
+  date: string;               // YYYY-MM-DD
+  max_seats_pranzo: number | null;  // null = usa default config
+  max_seats_cena: number | null;    // null = usa default config
   note: string;
 }
 

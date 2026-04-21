@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { getConfig, getBookedSeatsForSlot, isDateClosed, createReservation } from '@/lib/db';
+import { getConfig, getBookedSeatsForService, getService, isDateClosed, getDailyOverride, createReservation } from '@/lib/db';
 import { sendConfirmationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Numero di ospiti non valido' }, { status: 400 });
   }
 
-  const config = await getConfig();
+  const [config, override] = await Promise.all([getConfig(), getDailyOverride(date)]);
 
   if (await isDateClosed(date)) {
     return NextResponse.json({ error: 'Il ristorante è chiuso in questa data' }, { status: 409 });
@@ -33,8 +33,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Orario non disponibile' }, { status: 400 });
   }
 
-  const booked = await getBookedSeatsForSlot(date, time);
-  const available = config.max_seats - booked;
+  const service = getService(time);
+  const booked = await getBookedSeatsForService(date, service);
+  const maxForService = service === 'pranzo'
+    ? (override?.max_seats_pranzo ?? config.max_seats)
+    : (override?.max_seats_cena ?? config.max_seats);
+  const available = maxForService - booked;
   if (guests > available) {
     return NextResponse.json({ error: 'Posti insufficienti', available }, { status: 409 });
   }
