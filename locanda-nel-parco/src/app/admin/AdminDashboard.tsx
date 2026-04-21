@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Reservation, Config } from '@/types';
 
 const MESI = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
@@ -33,6 +33,14 @@ export function AdminDashboard({
   const [filterDate, setFilterDate] = useState(today);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
+
+  // Fetch fresco al mount per bypassare la Router Cache di Next.js
+  useEffect(() => {
+    fetch('/api/admin/reservations')
+      .then(r => r.json())
+      .then(d => { if (d.reservations) setReservations(d.reservations); })
+      .catch(() => {});
+  }, []);
 
   const filtered = reservations.filter(r =>
     filterDate ? r.date === filterDate : true,
