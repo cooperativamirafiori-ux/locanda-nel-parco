@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
     const service = getService(time);
     const booked = service === 'pranzo' ? pranzoBooked : cenaBooked;
     const maxForService = service === 'pranzo'
-      ? (override?.max_seats_pranzo ?? config.max_seats)
-      : (override?.max_seats_cena ?? config.max_seats);
+      ? (override?.max_seats_pranzo ?? config.max_seats_pranzo)
+      : (override?.max_seats_cena   ?? config.max_seats_cena);
     return {
       time,
       booked,

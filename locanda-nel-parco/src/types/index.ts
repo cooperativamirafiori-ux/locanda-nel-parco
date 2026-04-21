@@ -30,7 +30,8 @@ export interface WaitlistEntry {
 
 export interface Config {
   id: number;
-  max_seats: number;
+  max_seats_pranzo: number;
+  max_seats_cena: number;
   cancellation_hours: number;
   time_slots: string[];   // ['12:30', '13:00', ...]
   active_days: number[];  // 0=Dom, 1=Lun, ..., 6=Sab

@@ -40,7 +40,8 @@ export function AdminDashboard({
 
   const todayReservations = reservations.filter(r => r.date === today && r.status === 'confirmed');
   const todayGuests = todayReservations.reduce((s, r) => s + r.guests, 0);
-  const todayAvailable = config.max_seats - todayGuests;
+  const totalCapacityToday = config.max_seats_pranzo + config.max_seats_cena;
+  const todayAvailable = totalCapacityToday - todayGuests;
 
   const next7 = reservations.filter(r => r.date >= today && r.date <= addDays(today, 7) && r.status === 'confirmed');
 

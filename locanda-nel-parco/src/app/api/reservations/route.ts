@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
   const service = getService(time);
   const booked = await getBookedSeatsForService(date, service);
   const maxForService = service === 'pranzo'
-    ? (override?.max_seats_pranzo ?? config.max_seats)
-    : (override?.max_seats_cena ?? config.max_seats);
+    ? (override?.max_seats_pranzo ?? config.max_seats_pranzo)
+    : (override?.max_seats_cena   ?? config.max_seats_cena);
   const available = maxForService - booked;
   if (guests > available) {
     return NextResponse.json({ error: 'Posti insufficienti', available }, { status: 409 });

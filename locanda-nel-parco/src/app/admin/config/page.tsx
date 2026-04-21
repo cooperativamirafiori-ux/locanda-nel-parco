@@ -96,39 +96,54 @@ export default function ConfigPage() {
       </h1>
 
       <div className="space-y-6">
-        {/* Posti massimi */}
+        {/* Capienza */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-800 mb-4">Capienza</h2>
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
-                Posti massimi per turno
+                Posti massimi pranzo
               </label>
               <input
                 type="number"
                 min={1}
                 max={500}
-                value={config.max_seats}
-                onChange={e => setConfig({ ...config, max_seats: Number(e.target.value) })}
+                value={config.max_seats_pranzo}
+                onChange={e => setConfig({ ...config, max_seats_pranzo: Number(e.target.value) })}
                 className="field"
               />
+              <p className="text-xs text-gray-400 mt-1">Somma orari 12:00–14:30</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
-                Ore per cancellazione
+                Posti massimi cena
               </label>
               <input
                 type="number"
-                min={0}
-                max={72}
-                value={config.cancellation_hours}
-                onChange={e => setConfig({ ...config, cancellation_hours: Number(e.target.value) })}
+                min={1}
+                max={500}
+                value={config.max_seats_cena}
+                onChange={e => setConfig({ ...config, max_seats_cena: Number(e.target.value) })}
                 className="field"
               />
-              <p className="text-xs text-gray-400 mt-1">
-                Il cliente può cancellare entro {config.cancellation_hours}h dall'orario prenotato.
-              </p>
+              <p className="text-xs text-gray-400 mt-1">Somma orari 19:00–23:00</p>
             </div>
+          </div>
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+              Ore per cancellazione
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={72}
+              value={config.cancellation_hours}
+              onChange={e => setConfig({ ...config, cancellation_hours: Number(e.target.value) })}
+              className="field w-32"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Il cliente può cancellare entro {config.cancellation_hours}h dall'orario prenotato.
+            </p>
           </div>
         </div>
 
