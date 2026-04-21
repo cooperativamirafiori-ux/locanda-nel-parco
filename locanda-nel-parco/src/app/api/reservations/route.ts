@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { name, email, phone, date, time, guests, special_requests } = body;
 
-  if (!name || !email || !date || !time || !guests) {
+  if (!name || !email || !phone || !date || !time || !guests) {
     return NextResponse.json({ error: 'Campi obbligatori mancanti' }, { status: 400 });
   }
   if (!/^\S+@\S+\.\S+$/.test(email)) {

@@ -408,11 +408,12 @@ export default function HomePage() {
                   </div>
                   <div>
                     <label className="block text-xs font-sans font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
-                      Telefono
+                      Telefono *
                     </label>
                     <input
                       className="field"
                       type="tel"
+                      required
                       placeholder="+39 347 ..."
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
