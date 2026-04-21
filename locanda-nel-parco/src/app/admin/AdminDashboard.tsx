@@ -30,6 +30,7 @@ export function AdminDashboard({
   today: string;
 }) {
   const [reservations, setReservations] = useState(initialReservations);
+  const [liveConfig, setLiveConfig] = useState(config);
   const [filterDate, setFilterDate] = useState(today);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
@@ -40,6 +41,10 @@ export function AdminDashboard({
       .then(r => r.json())
       .then(d => { if (d.reservations) setReservations(d.reservations); })
       .catch(() => {});
+    fetch('/api/admin/config')
+      .then(r => r.json())
+      .then(d => { if (d.config) setLiveConfig(d.config); })
+      .catch(() => {});
   }, []);
 
   const filtered = reservations.filter(r =>
@@ -47,12 +52,14 @@ export function AdminDashboard({
   );
 
   const todayReservations = reservations.filter(r => r.date === today && r.status === 'confirmed');
-  const pranzoToday = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) < 15);
-  const cenaToday   = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) >= 15);
+  const pranzoToday  = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) < 15);
+  const cenaToday    = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) >= 15);
   const pranzoGuests = pranzoToday.reduce((s, r) => s + r.guests, 0);
   const cenaGuests   = cenaToday.reduce((s, r) => s + r.guests, 0);
-  const pranzoAvail  = (config.max_seats_pranzo || 0) - pranzoGuests;
-  const cenaAvail    = (config.max_seats_cena   || 0) - cenaGuests;
+  const pranzoMax    = liveConfig.max_seats_pranzo || 0;
+  const cenaMax      = liveConfig.max_seats_cena   || 0;
+  const pranzoAvail  = Math.max(0, pranzoMax - pranzoGuests);
+  const cenaAvail    = Math.max(0, cenaMax   - cenaGuests);
 
   const next7Guests = reservations
     .filter(r => r.date >= today && r.date <= addDays(today, 7) && r.status === 'confirmed')
@@ -90,35 +97,31 @@ export function AdminDashboard({
       <div className="grid grid-cols-3 gap-4 mb-8">
         {/* Pranzo oggi */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Pranzo oggi</div>
-          <div className="text-3xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{pranzoGuests}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            prenotati ·{' '}
-            <span style={{ color: pranzoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)', fontWeight: 600 }}>
-              {pranzoAvail} liberi
-            </span>
-            {' '}/ {config.max_seats_pranzo || '—'}
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Pranzo oggi</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>
+            {pranzoGuests} prenotati
+          </div>
+          <div className="text-sm font-semibold mt-1" style={{ color: pranzoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
+            {pranzoMax ? `${pranzoAvail} disponibili` : '—'}
           </div>
         </div>
 
         {/* Cena oggi */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Cena oggi</div>
-          <div className="text-3xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{cenaGuests}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            prenotati ·{' '}
-            <span style={{ color: cenaAvail < 10 ? 'var(--terracotta)' : 'var(--sage)', fontWeight: 600 }}>
-              {cenaAvail} liberi
-            </span>
-            {' '}/ {config.max_seats_cena || '—'}
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Cena oggi</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>
+            {cenaGuests} prenotati
+          </div>
+          <div className="text-sm font-semibold mt-1" style={{ color: cenaAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
+            {cenaMax ? `${cenaAvail} disponibili` : '—'}
           </div>
         </div>
 
         {/* Prossimi 7gg */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Prossimi 7 giorni</div>
-          <div className="text-3xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{next7Guests}</div>
-          <div className="text-xs text-gray-500 mt-1">coperti prenotati</div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Prossimi 7 giorni</div>
+          <div className="text-3xl font-serif font-bold mb-1" style={{ color: 'var(--forest)' }}>{next7Guests}</div>
+          <div className="text-xs text-gray-400">coperti prenotati</div>
         </div>
       </div>
 
