@@ -39,11 +39,16 @@ export function AdminDashboard({
   );
 
   const todayReservations = reservations.filter(r => r.date === today && r.status === 'confirmed');
-  const todayGuests = todayReservations.reduce((s, r) => s + r.guests, 0);
-  const totalCapacityToday = config.max_seats_pranzo + config.max_seats_cena;
-  const todayAvailable = totalCapacityToday - todayGuests;
+  const pranzoToday = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) < 15);
+  const cenaToday   = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) >= 15);
+  const pranzoGuests = pranzoToday.reduce((s, r) => s + r.guests, 0);
+  const cenaGuests   = cenaToday.reduce((s, r) => s + r.guests, 0);
+  const pranzoAvail  = (config.max_seats_pranzo || 0) - pranzoGuests;
+  const cenaAvail    = (config.max_seats_cena   || 0) - cenaGuests;
 
-  const next7 = reservations.filter(r => r.date >= today && r.date <= addDays(today, 7) && r.status === 'confirmed');
+  const next7Guests = reservations
+    .filter(r => r.date >= today && r.date <= addDays(today, 7) && r.status === 'confirmed')
+    .reduce((s, r) => s + r.guests, 0);
 
   async function updateStatus(id: string, status: Reservation['status']) {
     setUpdatingId(id);
@@ -74,20 +79,39 @@ export function AdminDashboard({
       </h1>
 
       {/* KPI */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Coperti oggi', value: todayGuests, color: 'var(--forest)' },
-          { label: 'Posti liberi', value: todayAvailable, color: todayAvailable < 10 ? 'var(--terracotta)' : 'var(--sage)' },
-          { label: 'Prenotaz. oggi', value: todayReservations.length, color: 'var(--forest)' },
-          { label: 'Prossimi 7gg', value: next7.reduce((s, r) => s + r.guests, 0) + ' cop.', color: 'var(--forest)' },
-        ].map(kpi => (
-          <div key={kpi.label} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <div className="text-3xl font-serif font-bold" style={{ color: kpi.color }}>
-              {kpi.value}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">{kpi.label}</div>
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {/* Pranzo oggi */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Pranzo oggi</div>
+          <div className="text-3xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{pranzoGuests}</div>
+          <div className="text-xs text-gray-500 mt-1">
+            prenotati ·{' '}
+            <span style={{ color: pranzoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)', fontWeight: 600 }}>
+              {pranzoAvail} liberi
+            </span>
+            {' '}/ {config.max_seats_pranzo || '—'}
           </div>
-        ))}
+        </div>
+
+        {/* Cena oggi */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Cena oggi</div>
+          <div className="text-3xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{cenaGuests}</div>
+          <div className="text-xs text-gray-500 mt-1">
+            prenotati ·{' '}
+            <span style={{ color: cenaAvail < 10 ? 'var(--terracotta)' : 'var(--sage)', fontWeight: 600 }}>
+              {cenaAvail} liberi
+            </span>
+            {' '}/ {config.max_seats_cena || '—'}
+          </div>
+        </div>
+
+        {/* Prossimi 7gg */}
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Prossimi 7 giorni</div>
+          <div className="text-3xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{next7Guests}</div>
+          <div className="text-xs text-gray-500 mt-1">coperti prenotati</div>
+        </div>
       </div>
 
       {/* Filtro data */}
