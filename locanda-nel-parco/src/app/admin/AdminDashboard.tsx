@@ -96,32 +96,30 @@ export function AdminDashboard({
       {/* KPI */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         {/* Pranzo oggi */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Pranzo oggi</div>
-          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>
-            {pranzoGuests} prenotati
-          </div>
-          <div className="text-sm font-semibold mt-1" style={{ color: pranzoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Pranzo oggi</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{pranzoGuests}</div>
+          <div className="text-xs text-gray-400 mb-1">prenotati</div>
+          <div className="text-sm font-semibold" style={{ color: pranzoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
             {pranzoMax ? `${pranzoAvail} disponibili` : '—'}
           </div>
         </div>
 
         {/* Cena oggi */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Cena oggi</div>
-          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>
-            {cenaGuests} prenotati
-          </div>
-          <div className="text-sm font-semibold mt-1" style={{ color: cenaAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Cena oggi</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{cenaGuests}</div>
+          <div className="text-xs text-gray-400 mb-1">prenotati</div>
+          <div className="text-sm font-semibold" style={{ color: cenaAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
             {cenaMax ? `${cenaAvail} disponibili` : '—'}
           </div>
         </div>
 
         {/* Prossimi 7gg */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Prossimi 7 giorni</div>
-          <div className="text-3xl font-serif font-bold mb-1" style={{ color: 'var(--forest)' }}>{next7Guests}</div>
-          <div className="text-xs text-gray-400">coperti prenotati</div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Prossimi 7 giorni</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{next7Guests}</div>
+          <div className="text-xs text-gray-400 mt-1">coperti prenotati</div>
         </div>
       </div>
 

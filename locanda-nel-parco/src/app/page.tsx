@@ -19,10 +19,14 @@ function Calendar({
   onSelectDate: (d: string) => void;
   activeDays: number[];
 }) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const now = new Date();
+  const todayYear  = now.getFullYear();
+  const todayMonth = now.getMonth();       // 0-indexed
+  const todayDay   = now.getDate();
+  const todayStr   = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}-${String(todayDay).padStart(2, '0')}`;
+
+  const [viewYear, setViewYear] = useState(todayYear);
+  const [viewMonth, setViewMonth] = useState(todayMonth);
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
@@ -36,8 +40,8 @@ function Calendar({
     else setViewMonth(m => m + 1);
   };
 
-  const canGoPrev = viewYear > today.getFullYear() ||
-    (viewYear === today.getFullYear() && viewMonth > today.getMonth());
+  const canGoPrev = viewYear > todayYear ||
+    (viewYear === todayYear && viewMonth > todayMonth);
 
   const cells: (number | null)[] = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   while (cells.length % 7 !== 0) cells.push(null);
@@ -78,12 +82,11 @@ function Calendar({
         {cells.map((day, idx) => {
           if (!day) return <div key={idx} />;
 
-          const date = new Date(viewYear, viewMonth, day);
           const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const isPast = date < today;
-          const isActive = activeDays.includes(date.getDay());
+          const isPast = dateStr < todayStr;
+          const isActive = activeDays.includes(new Date(viewYear, viewMonth, day).getDay());
           const isSelected = dateStr === selectedDate;
-          const isToday = date.getTime() === today.getTime();
+          const isToday = dateStr === todayStr;
           const isDisabled = isPast || !isActive;
 
           return (
