@@ -25,18 +25,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ isClosed: true, reason: 'giorno chiuso', slots: [], active_days: config.active_days });
   }
 
-  // Legge i posti occupati per servizio in parallelo (una query ciascuno)
-  const [pranzoBooked, cenaBooked] = await Promise.all([
+  // Legge i posti occupati per tutti e 4 i servizi in parallelo
+  const [pranzoBooked, cenaBooked, aperitivoBooked, compleannoBooked] = await Promise.all([
     getBookedSeatsForService(date, 'pranzo'),
     getBookedSeatsForService(date, 'cena'),
+    getBookedSeatsForService(date, 'aperitivo'),
+    getBookedSeatsForService(date, 'compleanno'),
   ]);
+
+  const bookedMap = {
+    pranzo:     pranzoBooked,
+    cena:       cenaBooked,
+    aperitivo:  aperitivoBooked,
+    compleanno: compleannoBooked,
+  };
+
+  const maxMap = {
+    pranzo:     override?.max_seats_pranzo     ?? config.max_seats_pranzo,
+    cena:       override?.max_seats_cena       ?? config.max_seats_cena,
+    aperitivo:  override?.max_seats_aperitivo  ?? config.max_seats_aperitivo,
+    compleanno: override?.max_seats_compleanno ?? config.max_seats_compleanno,
+  };
 
   const slots = config.time_slots.map((time) => {
     const service = getService(time);
-    const booked = service === 'pranzo' ? pranzoBooked : cenaBooked;
-    const maxForService = service === 'pranzo'
-      ? (override?.max_seats_pranzo ?? config.max_seats_pranzo)
-      : (override?.max_seats_cena   ?? config.max_seats_cena);
+    const booked = bookedMap[service];
+    const maxForService = maxMap[service];
     return {
       time,
       booked,

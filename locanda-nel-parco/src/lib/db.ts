@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Config, Reservation, WaitlistEntry, SpecialClosure, WaitlistStatus, DailyOverride } from '@/types';
+import type { Config, Reservation, WaitlistEntry, SpecialClosure, WaitlistStatus, DailyOverride, ServiceType } from '@/types';
 
 function getSupabase(): SupabaseClient {
   return createClient(
@@ -23,14 +23,18 @@ export async function updateConfig(update: Partial<Omit<Config, 'id'>>): Promise
 
 // ─── Availability ─────────────────────────────────────────────────────────────
 
-// Pranzo: orari con ora < 15 (12:00–14:30). Cena: tutto il resto (19:00–23:00).
-export function getService(time: string): 'pranzo' | 'cena' {
-  return parseInt(time.split(':')[0], 10) < 15 ? 'pranzo' : 'cena';
+// pranzo: 12:00–14:59 | compleanno: 16:00–17:59 | aperitivo: 18:00–19:00 | cena: 19:30+
+export function getService(time: string): ServiceType {
+  const [h, m] = time.split(':').map(Number);
+  if (h >= 12 && h <= 14) return 'pranzo';
+  if (h >= 16 && h <= 17) return 'compleanno';
+  if (h === 18 || (h === 19 && m < 30)) return 'aperitivo';
+  return 'cena';
 }
 
 export async function getBookedSeatsForService(
   date: string,
-  service: 'pranzo' | 'cena',
+  service: ServiceType,
 ): Promise<number> {
   const { data } = await getSupabase()
     .from('reservations')
@@ -177,11 +181,13 @@ export async function setDailyOverride(
   date: string,
   max_seats_pranzo: number | null,
   max_seats_cena: number | null,
+  max_seats_aperitivo: number | null,
+  max_seats_compleanno: number | null,
   note: string,
 ): Promise<DailyOverride> {
   const { data, error } = await getSupabase()
     .from('daily_overrides')
-    .upsert({ date, max_seats_pranzo, max_seats_cena, note })
+    .upsert({ date, max_seats_pranzo, max_seats_cena, max_seats_aperitivo, max_seats_compleanno, note })
     .select().single();
   if (error) throw new Error(error.message);
   return data as DailyOverride;

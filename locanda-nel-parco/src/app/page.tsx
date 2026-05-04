@@ -174,6 +174,9 @@ export default function HomePage() {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistSent, setWaitlistSent] = useState(false);
 
+  // Sezione compleanno pomeridiana espandibile
+  const [showCompleanno, setShowCompleanno] = useState(false);
+
   // Carica i giorni attivi all'avvio
   useEffect(() => {
     fetch('/api/availability?date=' + new Date().toISOString().split('T')[0])
@@ -189,6 +192,7 @@ export default function HomePage() {
     setSelectedTime('');
     setIsClosed(false);
     setShowWaitlist(false);
+    setShowCompleanno(false);
     try {
       const r = await fetch(`/api/availability?date=${date}`);
       const data = await r.json();
@@ -514,19 +518,83 @@ export default function HomePage() {
                         <span>Il martedì il ristorante è aperto <strong>solo con servizio pizzeria</strong>.</span>
                       </div>
                     )}
-                    <p className="text-xs font-sans font-medium text-gray-500 uppercase tracking-wide mb-3">
-                      Orari disponibili · {formatDateIT(selectedDate)}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {slots.map(slot => (
-                        <SlotButton
-                          key={slot.time}
-                          slot={slot}
-                          selected={selectedTime === slot.time}
-                          onClick={() => setSelectedTime(slot.time)}
-                        />
-                      ))}
-                    </div>
+
+                    {/* Gruppi di slot per servizio */}
+                    {(() => {
+                      function svcOf(time: string): 'pranzo' | 'aperitivo' | 'cena' | 'compleanno' {
+                        const [h, m] = time.split(':').map(Number);
+                        if (h >= 12 && h <= 14) return 'pranzo';
+                        if (h >= 16 && h <= 17) return 'compleanno';
+                        if (h === 18 || (h === 19 && m < 30)) return 'aperitivo';
+                        return 'cena';
+                      }
+                      const pranzoSlots     = slots.filter(s => svcOf(s.time) === 'pranzo');
+                      const aperitivoSlots  = slots.filter(s => svcOf(s.time) === 'aperitivo');
+                      const cenaSlots       = slots.filter(s => svcOf(s.time) === 'cena');
+                      const compleannoSlots = slots.filter(s => svcOf(s.time) === 'compleanno');
+
+                      const ServiceSection = ({
+                        title, emoji, slotList,
+                      }: { title: string; emoji: string; slotList: typeof slots }) => (
+                        slotList.length === 0 ? null : (
+                          <div className="mb-5">
+                            <p className="text-xs font-sans font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                              <span>{emoji}</span>{title}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {slotList.map(slot => (
+                                <SlotButton
+                                  key={slot.time}
+                                  slot={slot}
+                                  selected={selectedTime === slot.time}
+                                  onClick={() => setSelectedTime(slot.time)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      );
+
+                      return (
+                        <>
+                          <ServiceSection title="Prenota un tavolo per pranzo"    emoji="🍽"  slotList={pranzoSlots} />
+                          <ServiceSection title="Prenota un tavolo per aperitivo"  emoji="🍸"  slotList={aperitivoSlots} />
+                          <ServiceSection title="Prenota un tavolo per cena"       emoji="🌙"  slotList={cenaSlots} />
+
+                          {/* Compleanno — sezione espandibile */}
+                          {compleannoSlots.length > 0 && (
+                            <div className="mt-2">
+                              {!showCompleanno ? (
+                                <button
+                                  onClick={() => setShowCompleanno(true)}
+                                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-amber-300 bg-amber-50 text-sm font-sans text-amber-800 hover:bg-amber-100 transition"
+                                >
+                                  <span className="text-lg">🎂</span>
+                                  <span className="font-medium">Prenota una festa di compleanno pomeridiana</span>
+                                  <span className="ml-auto text-amber-500">›</span>
+                                </button>
+                              ) : (
+                                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+                                  <p className="text-xs font-sans font-semibold text-amber-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                                    <span>🎂</span>Festa di compleanno pomeridiana
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {compleannoSlots.map(slot => (
+                                      <SlotButton
+                                        key={slot.time}
+                                        slot={slot}
+                                        selected={selectedTime === slot.time}
+                                        onClick={() => setSelectedTime(slot.time)}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
 
                     {selectedTime && (
                       <div className="mt-6">

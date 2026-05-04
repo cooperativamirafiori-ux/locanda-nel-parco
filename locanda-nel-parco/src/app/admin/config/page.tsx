@@ -116,6 +116,20 @@ export default function ConfigPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+                Posti massimi aperitivo
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={500}
+                value={config.max_seats_aperitivo}
+                onChange={e => setConfig({ ...config, max_seats_aperitivo: Number(e.target.value) })}
+                className="field"
+              />
+              <p className="text-xs text-gray-400 mt-1">Somma orari 18:00–19:00</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
                 Posti massimi cena
               </label>
               <input
@@ -126,7 +140,21 @@ export default function ConfigPage() {
                 onChange={e => setConfig({ ...config, max_seats_cena: Number(e.target.value) })}
                 className="field"
               />
-              <p className="text-xs text-gray-400 mt-1">Somma orari 19:00–23:00</p>
+              <p className="text-xs text-gray-400 mt-1">Somma orari 19:30–23:00</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+                Posti massimi festa compleanno
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={500}
+                value={config.max_seats_compleanno}
+                onChange={e => setConfig({ ...config, max_seats_compleanno: Number(e.target.value) })}
+                className="field"
+              />
+              <p className="text-xs text-gray-400 mt-1">Somma orari 16:00–17:30</p>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-gray-100">

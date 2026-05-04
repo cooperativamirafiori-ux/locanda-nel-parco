@@ -51,15 +51,39 @@ export function AdminDashboard({
     filterDate ? r.date === filterDate : true,
   );
 
-  const todayReservations = reservations.filter(r => r.date === today && r.status === 'confirmed');
-  const pranzoToday  = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) < 15);
-  const cenaToday    = todayReservations.filter(r => parseInt(r.time.split(':')[0], 10) >= 15);
-  const pranzoGuests = pranzoToday.reduce((s, r) => s + r.guests, 0);
-  const cenaGuests   = cenaToday.reduce((s, r) => s + r.guests, 0);
-  const pranzoMax    = liveConfig.max_seats_pranzo || 0;
-  const cenaMax      = liveConfig.max_seats_cena   || 0;
-  const pranzoAvail  = Math.max(0, pranzoMax - pranzoGuests);
-  const cenaAvail    = Math.max(0, cenaMax   - cenaGuests);
+  // I KPI si riferiscono alla data selezionata nel filtro (o oggi se nessuna data)
+  const kpiDate = filterDate || today;
+  const kpiReservations = reservations.filter(r => r.date === kpiDate && r.status === 'confirmed');
+
+  function getServiceKpi(time: string): 'pranzo' | 'aperitivo' | 'cena' | 'compleanno' {
+    const [h, m] = time.split(':').map(Number);
+    if (h >= 12 && h <= 14) return 'pranzo';
+    if (h >= 16 && h <= 17) return 'compleanno';
+    if (h === 18 || (h === 19 && m < 30)) return 'aperitivo';
+    return 'cena';
+  }
+
+  const pranzoKpi      = kpiReservations.filter(r => getServiceKpi(r.time) === 'pranzo');
+  const aperitivoKpi   = kpiReservations.filter(r => getServiceKpi(r.time) === 'aperitivo');
+  const cenaKpi        = kpiReservations.filter(r => getServiceKpi(r.time) === 'cena');
+  const compleannoKpi  = kpiReservations.filter(r => getServiceKpi(r.time) === 'compleanno');
+
+  const pranzoGuests      = pranzoKpi.reduce((s, r) => s + r.guests, 0);
+  const aperitivoGuests   = aperitivoKpi.reduce((s, r) => s + r.guests, 0);
+  const cenaGuests        = cenaKpi.reduce((s, r) => s + r.guests, 0);
+  const compleannoGuests  = compleannoKpi.reduce((s, r) => s + r.guests, 0);
+
+  const pranzoMax      = liveConfig.max_seats_pranzo      || 0;
+  const aperitivoMax   = liveConfig.max_seats_aperitivo   || 0;
+  const cenaMax        = liveConfig.max_seats_cena        || 0;
+  const compleannoMax  = liveConfig.max_seats_compleanno  || 0;
+
+  const pranzoAvail     = Math.max(0, pranzoMax     - pranzoGuests);
+  const aperitivoAvail  = Math.max(0, aperitivoMax  - aperitivoGuests);
+  const cenaAvail       = Math.max(0, cenaMax       - cenaGuests);
+  const compleannoAvail = Math.max(0, compleannoMax - compleannoGuests);
+
+  const kpiLabel = kpiDate === today ? 'oggi' : formatDateShort(kpiDate);
 
   const next7Guests = reservations
     .filter(r => r.date >= today && r.date <= addDays(today, 7) && r.status === 'confirmed')
@@ -93,11 +117,11 @@ export function AdminDashboard({
         Dashboard · {formatDateShort(today)}
       </h1>
 
-      {/* KPI */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {/* Pranzo oggi */}
+      {/* KPI — 4 servizi + prossimi 7gg */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        {/* Pranzo */}
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Pranzo oggi</div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Pranzo {kpiLabel}</div>
           <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{pranzoGuests}</div>
           <div className="text-xs text-gray-400 mb-1">prenotati</div>
           <div className="text-sm font-semibold" style={{ color: pranzoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
@@ -105,9 +129,19 @@ export function AdminDashboard({
           </div>
         </div>
 
-        {/* Cena oggi */}
+        {/* Aperitivo */}
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Cena oggi</div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Aperitivo {kpiLabel}</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{aperitivoGuests}</div>
+          <div className="text-xs text-gray-400 mb-1">prenotati</div>
+          <div className="text-sm font-semibold" style={{ color: aperitivoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
+            {aperitivoMax ? `${aperitivoAvail} disponibili` : '—'}
+          </div>
+        </div>
+
+        {/* Cena */}
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Cena {kpiLabel}</div>
           <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{cenaGuests}</div>
           <div className="text-xs text-gray-400 mb-1">prenotati</div>
           <div className="text-sm font-semibold" style={{ color: cenaAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
@@ -115,11 +149,23 @@ export function AdminDashboard({
           </div>
         </div>
 
-        {/* Prossimi 7gg */}
+        {/* Compleanno */}
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Prossimi 7 giorni</div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Compleanno {kpiLabel}</div>
+          <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{compleannoGuests}</div>
+          <div className="text-xs text-gray-400 mb-1">prenotati</div>
+          <div className="text-sm font-semibold" style={{ color: compleannoAvail < 10 ? 'var(--terracotta)' : 'var(--sage)' }}>
+            {compleannoMax ? `${compleannoAvail} disponibili` : '—'}
+          </div>
+        </div>
+      </div>
+
+      {/* Prossimi 7gg — full width */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-8 flex items-center gap-6">
+        <div>
+          <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Prossimi 7 giorni</div>
           <div className="text-2xl font-serif font-bold" style={{ color: 'var(--forest)' }}>{next7Guests}</div>
-          <div className="text-xs text-gray-400 mt-1">coperti prenotati</div>
+          <div className="text-xs text-gray-400">coperti prenotati</div>
         </div>
       </div>
 

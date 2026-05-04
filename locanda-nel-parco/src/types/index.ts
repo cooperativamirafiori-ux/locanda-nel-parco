@@ -28,19 +28,25 @@ export interface WaitlistEntry {
   created_at: string;
 }
 
+export type ServiceType = 'pranzo' | 'aperitivo' | 'cena' | 'compleanno';
+
 export interface Config {
   id: number;
   max_seats_pranzo: number;
   max_seats_cena: number;
+  max_seats_aperitivo: number;
+  max_seats_compleanno: number;
   cancellation_hours: number;
   time_slots: string[];   // ['12:30', '13:00', ...]
   active_days: number[];  // 0=Dom, 1=Lun, ..., 6=Sab
 }
 
 export interface DailyOverride {
-  date: string;               // YYYY-MM-DD
-  max_seats_pranzo: number | null;  // null = usa default config
-  max_seats_cena: number | null;    // null = usa default config
+  date: string;                        // YYYY-MM-DD
+  max_seats_pranzo: number | null;     // null = usa default config
+  max_seats_cena: number | null;       // null = usa default config
+  max_seats_aperitivo: number | null;  // null = usa default config
+  max_seats_compleanno: number | null; // null = usa default config
   note: string;
 }
 

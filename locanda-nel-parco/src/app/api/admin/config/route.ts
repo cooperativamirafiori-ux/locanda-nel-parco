@@ -9,13 +9,19 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { max_seats_pranzo, max_seats_cena, cancellation_hours, time_slots, active_days } = body;
+    const { max_seats_pranzo, max_seats_cena, max_seats_aperitivo, max_seats_compleanno, cancellation_hours, time_slots, active_days } = body;
 
     if (max_seats_pranzo !== undefined && (max_seats_pranzo < 1 || max_seats_pranzo > 500)) {
       return NextResponse.json({ error: 'Numero posti pranzo non valido' }, { status: 400 });
     }
     if (max_seats_cena !== undefined && (max_seats_cena < 1 || max_seats_cena > 500)) {
       return NextResponse.json({ error: 'Numero posti cena non valido' }, { status: 400 });
+    }
+    if (max_seats_aperitivo !== undefined && (max_seats_aperitivo < 1 || max_seats_aperitivo > 500)) {
+      return NextResponse.json({ error: 'Numero posti aperitivo non valido' }, { status: 400 });
+    }
+    if (max_seats_compleanno !== undefined && (max_seats_compleanno < 1 || max_seats_compleanno > 500)) {
+      return NextResponse.json({ error: 'Numero posti compleanno non valido' }, { status: 400 });
     }
     if (time_slots !== undefined && !Array.isArray(time_slots)) {
       return NextResponse.json({ error: 'Orari non validi' }, { status: 400 });
@@ -24,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Giorni non validi' }, { status: 400 });
     }
 
-    await updateConfig({ max_seats_pranzo, max_seats_cena, cancellation_hours, time_slots, active_days });
+    await updateConfig({ max_seats_pranzo, max_seats_cena, max_seats_aperitivo, max_seats_compleanno, cancellation_hours, time_slots, active_days });
     const config = await getConfig();
     return NextResponse.json({ config });
   } catch (err) {

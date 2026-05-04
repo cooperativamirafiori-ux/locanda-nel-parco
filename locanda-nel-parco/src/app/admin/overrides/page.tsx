@@ -27,6 +27,8 @@ export default function OverridesPage() {
   const [date, setDate]           = useState('');
   const [pranzo, setPranzo]       = useState('');
   const [cena, setCena]           = useState('');
+  const [aperitivo, setAperitivo] = useState('');
+  const [compleanno, setCompleanno] = useState('');
   const [note, setNote]           = useState('');
   const [adding, setAdding]       = useState(false);
   const [error, setError]         = useState('');
@@ -43,14 +45,16 @@ export default function OverridesPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date || (pranzo === '' && cena === '')) return;
+    if (!date || (pranzo === '' && cena === '' && aperitivo === '' && compleanno === '')) return;
     setAdding(true);
     setError('');
     setSaved(false);
     try {
       const body: Record<string, unknown> = { date, note };
-      if (pranzo !== '') body.max_seats_pranzo = Number(pranzo);
-      if (cena   !== '') body.max_seats_cena   = Number(cena);
+      if (pranzo     !== '') body.max_seats_pranzo     = Number(pranzo);
+      if (cena       !== '') body.max_seats_cena       = Number(cena);
+      if (aperitivo  !== '') body.max_seats_aperitivo  = Number(aperitivo);
+      if (compleanno !== '') body.max_seats_compleanno = Number(compleanno);
 
       const r = await fetch('/api/admin/overrides', {
         method: 'POST',
@@ -59,7 +63,7 @@ export default function OverridesPage() {
       });
       const data = await r.json();
       if (r.ok) {
-        setDate(''); setPranzo(''); setCena(''); setNote('');
+        setDate(''); setPranzo(''); setCena(''); setAperitivo(''); setCompleanno(''); setNote('');
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
         load();
@@ -126,6 +130,21 @@ export default function OverridesPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+                Aperitivo (posti)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={500}
+                value={aperitivo}
+                onChange={e => setAperitivo(e.target.value)}
+                placeholder="default"
+                className="field"
+              />
+              <p className="text-xs text-gray-400 mt-1">0 = servizio chiuso</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
                 Cena (posti)
               </label>
               <input
@@ -134,6 +153,21 @@ export default function OverridesPage() {
                 max={500}
                 value={cena}
                 onChange={e => setCena(e.target.value)}
+                placeholder="default"
+                className="field"
+              />
+              <p className="text-xs text-gray-400 mt-1">0 = servizio chiuso</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+                Festa compleanno (posti)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={500}
+                value={compleanno}
+                onChange={e => setCompleanno(e.target.value)}
                 placeholder="default"
                 className="field"
               />
@@ -158,7 +192,7 @@ export default function OverridesPage() {
           {saved && <p className="text-sm text-green-700">✓ Salvato!</p>}
           <button
             type="submit"
-            disabled={adding || !date || (pranzo === '' && cena === '')}
+            disabled={adding || !date || (pranzo === '' && cena === '' && aperitivo === '' && compleanno === '')}
             className="btn-primary disabled:opacity-50"
           >
             {adding ? 'Salvataggio...' : '+ Imposta capienza'}
@@ -187,8 +221,10 @@ export default function OverridesPage() {
                 <div>
                   <div className="text-sm font-medium text-gray-800">{formatDateIT(o.date)}</div>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <SeatsBadge value={o.max_seats_pranzo} label="Pranzo" />
-                    <SeatsBadge value={o.max_seats_cena}   label="Cena" />
+                    <SeatsBadge value={o.max_seats_pranzo}     label="Pranzo" />
+                    <SeatsBadge value={o.max_seats_aperitivo}  label="Aperitivo" />
+                    <SeatsBadge value={o.max_seats_cena}       label="Cena" />
+                    <SeatsBadge value={o.max_seats_compleanno} label="Compleanno" />
                     {o.note && <span className="text-xs text-gray-500">{o.note}</span>}
                   </div>
                 </div>
